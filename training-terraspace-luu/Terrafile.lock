@@ -1,0 +1,16 @@
+---
+ec2-instance:
+  source: terraform-aws-modules/ec2-instance/aws
+  type: registry
+  url: https://github.com/terraform-aws-modules/terraform-aws-ec2-instance
+  sha: 4de24dc8eece9d42ba86c5da0189b0565f05d680
+s3-bucket:
+  source: terraform-aws-modules/s3-bucket/aws
+  type: registry
+  url: https://github.com/terraform-aws-modules/terraform-aws-s3-bucket
+  sha: d37117535dd57d7272b4cbd12c76e87a70d93b19
+vpc:
+  source: terraform-aws-modules/vpc/aws
+  type: registry
+  url: https://github.com/terraform-aws-modules/terraform-aws-vpc
+  sha: fbd4ff646b4caaa6fcc1fb71bc88d377cc8b3b48
