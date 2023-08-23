@@ -1,49 +1,3 @@
-provider "aws" {
-  region = local.region
-}
-
-locals {
-  name     = "test"
-  region   = "ap-south-1"
-  profile  = "teko-security-luu-tekos-dev"
-  vpc_cidr = "10.0.0.0/16"
-  azs      = slice(data.aws_availability_zones.available.names, 0, 3)
-
-  user_data = <<-EOT
-    #!/bin/bash
-    echo "Hello Terraform!"
-  EOT
-
-  tags = {
-    Name = local.name
-    Env  = "test"
-
-  }
-}
-
-### IAM ###
-
-data "aws_iam_policy_document" "ec2_assume_role" {
-  statement {
-    actions = ["sts:AssumeRole"]
-
-    principals {
-      type        = "Service"
-      identifiers = ["ec2.amazonaws.com"]
-    }
-  }
-}
-
-data "aws_iam_policy_document" "s3_write_access" {
-  statement {
-    actions = ["s3:Get*", "s3:List*", "s3:Write*"]
-
-    resources = ["arn:aws:s3:::*"]
-  }
-}
-
-data "aws_availability_zones" "available" {}
-
 resource "aws_iam_role" "ec2_iam_role" {
   name = "ec2_iam_role"
 
@@ -76,7 +30,7 @@ module "ec2_instance" {
   associate_public_ip_address = true
   iam_instance_profile        = aws_iam_instance_profile.instance_profile.name
   vpc_security_group_ids      = [aws_security_group.ssh.id]
-
+  key_name                    = "terraform_ec2_key"
   root_block_device = [
     {
       encrypted   = true
@@ -87,16 +41,6 @@ module "ec2_instance" {
   ]
 
   tags = local.tags
-}
-
-data "aws_ami" "amazon_linux" {
-  most_recent = true
-  owners      = ["amazon"]
-
-  filter {
-    name   = "name"
-    values = ["amzn-ami-hvm-*-x86_64-gp2"]
-  }
 }
 
 resource "aws_security_group" "ssh" {
@@ -123,15 +67,9 @@ resource "aws_security_group_rule" "ssh_egress" {
   cidr_blocks       = ["0.0.0.0/0"]
 }
 
-module "vpc" {
-  source = "../../modules/vpc"
-  name   = local.name
-  cidr   = local.vpc_cidr
-
-  azs             = local.azs
-  private_subnets = [for k, v in local.azs : cidrsubnet(local.vpc_cidr, 4, k)]
-  public_subnets  = [for k, v in local.azs : cidrsubnet(local.vpc_cidr, 8, k + 48)]
-
-  tags = local.tags
+resource "aws_key_pair" "terraform_ec2_key" {
+  key_name   = "terraform_ec2_key"
+  public_key = file("~/.ssh/terraform_ec2_key.pub")
 }
+
 

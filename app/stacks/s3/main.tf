@@ -1,14 +1,3 @@
-provider "aws" {
-  region = local.region
-}
-
-locals {
-  bucket_name = "s3-bucket-${random_pet.this.id}"
-  region      = "ap-south-1"
-}
-
-data "aws_caller_identity" "current" {}
-
 resource "random_pet" "this" {
   length = 2
 }
@@ -29,23 +18,6 @@ resource "aws_iam_role" "this" {
   ]
 }
 EOF
-}
-
-data "aws_iam_policy_document" "bucket_policy" {
-  statement {
-    principals {
-      type        = "AWS"
-      identifiers = [aws_iam_role.this.arn]
-    }
-
-    actions = [
-      "s3:ListBucket",
-    ]
-
-    resources = [
-      "arn:aws:s3:::${local.bucket_name}",
-    ]
-  }
 }
 
 module "s3_bucket" {
